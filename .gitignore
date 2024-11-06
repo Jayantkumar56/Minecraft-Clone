@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# binary and intermediate files
+bin/*
+bin-int/*
+*.sln
+*.vcxproj
