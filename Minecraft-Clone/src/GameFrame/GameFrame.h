@@ -12,6 +12,8 @@ public:
 	GameFrame(Quirk::WindowSpecification& spec) :
 			Frame(spec)
 	{
+		CustomRenderer::InitRenderer();
+
 		SetTitleBar<GameTitleBar>();
 		AddPanel<GamePanel>();
 	}
