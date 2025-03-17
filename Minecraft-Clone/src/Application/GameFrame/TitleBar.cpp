@@ -3,7 +3,7 @@
 
 #include "Quirk.h"
 #include "TitleBar.h"
-#include "Theme.h"
+#include "Application/Theme.h"
 
 void GameTitleBar::SetImguiProperties() {
 	ImGuiStyle& style = ImGui::GetStyle();

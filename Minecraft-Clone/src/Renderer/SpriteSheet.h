@@ -5,26 +5,28 @@
 #include "Quirk.h"
 
 struct SpriteData {
-	uint16_t PosX  = 0, PosY   = 0;
-	uint16_t width = 0, height = 0;
+	std::string Name;
+	uint16_t    PosX  = 0,   PosY   = 0;
+	uint16_t    Width = 0,   Height = 0;
 };
 
 class SpriteSheet {
 public:
-	SpriteSheet(Quirk::Ref<Quirk::Texture2D> texture, std::unordered_map<std::string, SpriteData> spriteRegistry) :
-			m_Texture        ( std::move(texture)        ),
-			m_SpriteRegistry ( std::move(spriteRegistry) )
-	{}
-
-	inline SpriteData GetSprteData(const std::string& spriteName) {
-		SpriteData data;
-		if (m_SpriteRegistry.contains(spriteName)) {
-			data = m_SpriteRegistry[spriteName];
-		}
-		return data;
+	SpriteSheet(const std::filesystem::path& texturePath, const std::filesystem::path& spriteRegistryPath) {
+		m_Texture = Quirk::Texture2D::Create(texturePath);
+		DeserializeSpriteRegistry(spriteRegistryPath);
 	}
+
+	inline void ReleaseSpriteRegistry() { m_SpriteRegistry.clear(); }
+	inline auto GetTexture() const { return m_Texture; }
+
+	inline const auto& GetSpriteRegistry() const noexcept { return m_SpriteRegistry; }
+	inline glm::vec2   GetSize()           const { return glm::vec2(m_Texture->GetWidth(), m_Texture->GetHeight()); }
+
+private:
+	void DeserializeSpriteRegistry (const std::filesystem::path& spriteRegistryPath);
 
 private:
 	Quirk::Ref<Quirk::Texture2D> m_Texture;
-	std::unordered_map<std::string, SpriteData> m_SpriteRegistry;
+	std::vector<SpriteData> m_SpriteRegistry;
 };

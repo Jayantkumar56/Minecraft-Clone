@@ -4,7 +4,7 @@
 
 #include "Quirk.h"
 #include "TitleBar.h"
-#include "Panels/GamePanel.h"
+#include "GamePanel.h"
 
 
 class GameFrame : public Quirk::Frame {

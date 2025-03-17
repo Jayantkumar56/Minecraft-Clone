@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "Player.h"
-#include "Chunk.h"
+#include "Player/Player.h"
+#include "World/Chunk/Chunk.h"
 #include "Renderer/Renderer.h"
 
 

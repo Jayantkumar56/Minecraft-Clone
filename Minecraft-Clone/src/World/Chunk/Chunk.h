@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Quirk.h"
-#include "Block.h"
+#include "World/Block/Block.h"
 #include "Renderer/Renderer.h"
 
 #include <vector>
@@ -31,18 +31,18 @@ public:
 	}
 
 	void GenerateSubChunk() {
-		Block* start = &m_Blocks[0][0][0];
-		Block* end   = start + SubChunkBlocksCount();
-		std::fill(start, end, Block(BlockType::Grass));
+		ChunkBlock* start = &m_Blocks[0][0][0];
+		ChunkBlock* end   = start + SubChunkBlocksCount();
+		std::fill(start, end, ChunkBlock(BlockId::Grass));
 	}
 
-	BlockType GetBlockType(int x, int y, int z) const {
+	BlockId GetBlockType(int x, int y, int z) const {
 		if (x < 0 || y < 0 || z < 0)
-			return BlockType::None;
+			return BlockId::None;
 		if (x >= SubChunkSizeX || y >= SubChunkSizeY || z >= SubChunkSizeZ)
-			return BlockType::None;
+			return BlockId::None;
 
-		return m_Blocks[x][y][z].Type;
+		return m_Blocks[x][y][z].Id;
 	}
 
 	bool IsSolidBlock(int x, int y, int z) const {
@@ -51,13 +51,13 @@ public:
 		if (x >= SubChunkSizeX || y >= SubChunkSizeY || z >= SubChunkSizeZ)
 			return false;
 
-		return m_Blocks[x][y][z].Type != BlockType::Air;
+		return m_Blocks[x][y][z].Id != BlockId::Air;
 	}
 
 	void GenerateMesh();
 
 private:
-	Block m_Blocks[SubChunkSizeX][SubChunkSizeY][SubChunkSizeZ];
+	ChunkBlock m_Blocks[SubChunkSizeX][SubChunkSizeY][SubChunkSizeZ];
 	Mesh m_Mesh;
 };
 

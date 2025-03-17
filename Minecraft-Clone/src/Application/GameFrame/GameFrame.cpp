@@ -1,8 +1,6 @@
 
 
 #include "GameFrame.h"
-#include "FontManager.h"
-#include "Theme.h"
 
 
 bool GameFrame::OnEvent(Quirk::Event& event){
