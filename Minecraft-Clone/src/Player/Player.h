@@ -3,45 +3,24 @@
 #pragma once
 #include "Quirk.h"
 
+#include "CameraController.h"
+
 class World;
 
 class Player {
 	friend class World;
 
 public:
-	Player() : m_CameraController(glm::radians(45.0f), 1.0f, 1.0f, 1000.0f) { }
+	Player();
 
 	void OnUpdate() { m_CameraController.OnUpdate(); }
 
-	bool OnEvent(Quirk::Event& event) { 
-		Quirk::EventDispatcher::HandleEvent<Quirk::KeyPressedEvent>([&] (Quirk::KeyPressedEvent event) -> bool {
-			if (event.GetKeyCode() == QK_Key_Y) {
-				m_HaveFocus  = true;
-				auto& window = Quirk::Application::GetFrameManager().GetCurrentFrame()->GetWindow();
-				window.HideCursor();
-				window.SetCursorAtCenter();
-				window.SetCursorLocked(true);
-	
-			}
-			if (event.GetKeyCode() == QK_Key_Escape) {
-				m_HaveFocus  = false;
-				auto& window = Quirk::Application::GetFrameManager().GetCurrentFrame()->GetWindow();
-				window.ShowCursor();
-				window.SetCursorLocked(false);
-			}
+	const auto& GetCamera()   { return m_CameraController.GetCamera();   }
+	const auto  GetPosition() { return m_CameraController.GetPosition(); }
 
-			return false;
-		});
-
-		if (m_HaveFocus) 
-			m_CameraController.OnEvent(event);
-
-		return false;
-	}
-
-	glm::vec3 GetPosition() { return m_CameraController.GetPosition(); }
+	void SetControl(bool flag) { m_IsInControl = flag; }
 
 private:
-	bool m_HaveFocus = false;
-	Quirk::PerspectiveCameraController m_CameraController;
+	bool m_IsInControl = false;
+	CameraController m_CameraController;
 };

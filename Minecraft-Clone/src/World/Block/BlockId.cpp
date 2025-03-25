@@ -8,6 +8,7 @@
 static std::unordered_map<std::string_view, BlockId> const BlockTable = {
 	{ "None",              BlockId::None  },
 	{ "air",               BlockId::Air   },
+	{ "dirt",              BlockId::Dirt  },
 	{ "grass",             BlockId::Grass }
 };
 
@@ -15,6 +16,7 @@ std::string_view BlockIdToString(BlockId id) {
 	switch (id) {
 		case BlockId::None:                    return "None";
 		case BlockId::Air:                     return "air";
+		case BlockId::Dirt:                    return "dirt";
 		case BlockId::Grass:                   return "grass";
 	}
 

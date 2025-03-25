@@ -5,7 +5,7 @@
 #include "Player/Player.h"
 #include "World/Chunk/Chunk.h"
 #include "Renderer/Renderer.h"
-
+#include "Renderer/TextureManager.h"
 
 class GamePanel;
 
@@ -14,16 +14,26 @@ class World {
 public:
 	World() {
 		m_Chunks.emplace_back();
-		glm::vec3 Translation { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Rotation    { 0.0f, 0.0f, 0.0f };
-		glm::vec3 Scale       { 0.02f, 0.02f, 0.02f };
 
-		glm::mat4 rotation  = glm::toMat4(glm::quat(Rotation));
-		m_ChunksModelMatrix = glm::translate(glm::mat4(1.0f), Translation) * rotation * glm::scale(glm::mat4(1.0f), Scale);
+		glm::vec3 Scale { 0.5f, 0.5f, 0.5f };
+		m_ChunksModelMatrix = glm::scale(glm::mat4(1.0f), Scale);
 	}
 
 	void OnUpdate()                   { m_Player.OnUpdate();            }
-	bool OnEvent(Quirk::Event& event) { return m_Player.OnEvent(event); }
+	bool OnEvent(Quirk::Event& event) {
+		Quirk::EventDispatcher::HandleEvent<Quirk::KeyPressedEvent>([&](Quirk::KeyPressedEvent& event) -> bool {
+			if (event.GetKeyCode() == QK_Key_T) {
+				m_Player.SetControl(true);
+			}
+			if (event.GetKeyCode() == QK_Key_R) {
+				m_Player.SetControl(false);
+			}
+
+			return false;
+		});
+
+		return false;
+	}
 
 private:
 	void HandleResize(uint16_t width, uint16_t height) {
@@ -31,8 +41,8 @@ private:
 	}
 
 	void RenderWorld() {
-		auto& camera = m_Player.m_CameraController;
-		CustomRenderer::BeginScene(camera.GetProjectionViewMatrix(), camera.GetPosition());
+		const auto& camera = m_Player.GetCamera();
+		CustomRenderer::BeginScene(camera.GetViewProjection(), camera.GetPosition());
 
 		for (auto& chunk : m_Chunks) {
 			for (auto& subchunk : chunk.m_SubChunks) {
@@ -53,4 +63,6 @@ private:
 	std::vector<Chunk> m_Chunks;
 
 	glm::mat4 m_ChunksModelMatrix;
+
+	//TextureManager m_TextureManager;
 };

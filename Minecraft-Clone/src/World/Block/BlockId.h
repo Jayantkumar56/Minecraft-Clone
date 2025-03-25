@@ -7,6 +7,7 @@
 enum BlockId : uint16_t {
 	None = 0,
 	Air,
+	Dirt,
 	Grass,
 
 	TOTAL_TYPES
