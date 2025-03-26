@@ -3,22 +3,13 @@
 #pragma once
 
 
-#include "Quirk.h"
+#include "ChunkMesh.h"
+#include "ChunkMeshBuilder.h"
 #include "World/Block/Block.h"
-#include "Renderer/Renderer.h"
 
 #include <vector>
 #include <array>
 
-
-
-constexpr int SubChunkSizeX = 16;
-constexpr int SubChunkSizeY = 16;
-constexpr int SubChunkSizeZ = 16;
-
-consteval int SubChunkBlocksCount() {
-	return SubChunkSizeX * SubChunkSizeY * SubChunkSizeZ;
-}
 
 class World;
 
@@ -26,14 +17,14 @@ class SubChunk {
 	friend class World;
 
 public:
-	SubChunk() {
+	SubChunk() : m_MeshGenerator(*this, m_Mesh, m_Blocks) {
 		GenerateSubChunk();
-		GenerateMesh();
+		m_MeshGenerator.GenerateMesh();
 	}
 
 	void GenerateSubChunk() {
-		ChunkBlock* start = &m_Blocks[0][0][0];
-		ChunkBlock* end = start + SubChunkBlocksCount();
+		ChunkBlock* start = &m_Blocks[0];
+		ChunkBlock* end = start + SubChunkBlocksCount;
 		std::fill(start, end, ChunkBlock(BlockId::Grass));
 	}
 
@@ -43,7 +34,7 @@ public:
 		if (x >= SubChunkSizeX || y >= SubChunkSizeY || z >= SubChunkSizeZ)
 			return BlockId::None;
 
-		return m_Blocks[x][y][z].Id;
+		return GetBlock(x, y, z).Id;
 	}
 
 	bool IsSolidBlock(int x, int y, int z) const {
@@ -52,13 +43,17 @@ public:
 		if (x >= SubChunkSizeX || y >= SubChunkSizeY || z >= SubChunkSizeZ)
 			return false;
 
-		return m_Blocks[x][y][z].Id != BlockId::Air;
+		return GetBlock(x, y, z).Id != BlockId::Air;
 	}
 
-	void GenerateMesh();
+	inline ChunkBlock GetBlock(uint32_t x, uint32_t y, uint32_t z) const {
+		QK_ASSERT(x < SubChunkSizeX && y < SubChunkSizeY && z < SubChunkSizeZ, "Block index out of bound!");
+		return m_Blocks[static_cast<size_t>((z * SubChunkSizeX * SubChunkSizeY) + (y * SubChunkSizeX) + x)];
+	}
 
 private:
-	ChunkBlock m_Blocks[SubChunkSizeX][SubChunkSizeY][SubChunkSizeZ];
-	Mesh m_Mesh;
+	std::array<ChunkBlock, SubChunkBlocksCount> m_Blocks;
+	ChunkMesh             m_Mesh;
+	SubChunkMeshGenerator m_MeshGenerator;
 };
 

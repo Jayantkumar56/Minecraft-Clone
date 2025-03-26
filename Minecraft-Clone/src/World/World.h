@@ -46,7 +46,7 @@ private:
 
 		for (auto& chunk : m_Chunks) {
 			for (auto& subchunk : chunk.m_SubChunks) {
-				CustomRenderer::SubmitMesh(subchunk.m_Mesh, m_ChunksModelMatrix);
+				CustomRenderer::SubmitMesh(subchunk.m_Mesh.GetMesh(), m_ChunksModelMatrix);
 			}
 		}
 

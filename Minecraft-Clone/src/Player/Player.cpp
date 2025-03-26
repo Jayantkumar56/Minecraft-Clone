@@ -10,9 +10,9 @@ Player::Player() :
 				.AspectRatio { 1.0f                         },
 				.ZNear       { 1.0f                         },
 				.ZFar        { 1000.0f                      },
-				.Position    { glm::vec3(0.0f, 0.0f, 3.0f)  },
+				.Position    { glm::vec3(0.0f, 9.0f, 0.0f)  },
 				.Up          { glm::vec3(0.0f, 1.0f, 0.0f)  },
-				.Forward     { glm::vec3(0.0f, 0.0f, -1.0f) },
+				.Forward     { glm::vec3(0.0f, 0.0f, 1.0f) },
 			},
 			CameraControls {
 				.Forward { QK_Key_W     }, .Backward { QK_Key_S        },

@@ -4,12 +4,7 @@
 
 #include "Quirk.h"
 
-struct Mesh {
-	std::vector<glm::vec3> Positions;
-	std::vector<glm::vec3> Normals;
-	std::vector<glm::vec2> UV;
-	std::vector<uint32_t>  Indices;
-};
+#include "Mesh.h"
 
 class CustomRenderer {
 public:
