@@ -18,8 +18,9 @@ enum class BlockFace : uint16_t {
 };
 
 struct BlockSpriteData {
-	glm::u16vec2 Pos;
-	glm::u16vec2 Size;
+	glm::vec2 Pos;
+	glm::vec2 Size;
+
 };
 
 struct BlockData {
@@ -32,5 +33,7 @@ struct BlockData {
 };
 
 struct ChunkBlock {
+	const BlockData& GetBlockData() const;
+
 	BlockId Id = BlockId::Air;
 };

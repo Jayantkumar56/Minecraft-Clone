@@ -13,10 +13,9 @@ class World {
 	friend class GamePanel;
 public:
 	World() {
-		m_Chunks.emplace_back();
+		m_TextureManager.LoadBlockSprites(m_BlockDataBase);
 
-		glm::vec3 Scale { 0.5f, 0.5f, 0.5f };
-		m_ChunksModelMatrix = glm::scale(glm::mat4(1.0f), Scale);
+		m_Chunks.emplace_back();
 	}
 
 	void OnUpdate()                   { m_Player.OnUpdate();            }
@@ -46,7 +45,7 @@ private:
 
 		for (auto& chunk : m_Chunks) {
 			for (auto& subchunk : chunk.m_SubChunks) {
-				CustomRenderer::SubmitMesh(subchunk.m_Mesh.GetMesh(), m_ChunksModelMatrix);
+				CustomRenderer::SubmitMesh(subchunk.m_Mesh.GetMesh(), m_TextureManager.GetSpriteSheetTexture());
 			}
 		}
 
@@ -62,7 +61,6 @@ private:
 	// chunks data;
 	std::vector<Chunk> m_Chunks;
 
-	glm::mat4 m_ChunksModelMatrix;
-
-	//TextureManager m_TextureManager;
+	TextureManager m_TextureManager;
+	BlockDataBase  m_BlockDataBase;
 };

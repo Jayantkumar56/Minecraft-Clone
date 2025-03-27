@@ -9,14 +9,14 @@ layout(location = 2) in vec2 v_TexCoord;
 
 layout(location = 0) out vec3 o_Position;
 layout(location = 1) out vec3 o_Normal;
+layout(location = 2) out vec2 o_TexCoord;
 
 uniform mat4 u_ViewProjection;
-uniform mat4 u_Transform;
-
 void main() {
 	o_Normal    = v_Normal;
     o_Position  = v_Position;
-	gl_Position = u_ViewProjection * u_Transform * vec4(v_Position, 1.0f);
+	o_TexCoord  = v_TexCoord;
+	gl_Position = u_ViewProjection * vec4(v_Position, 1.0f);
 }
 
 
@@ -30,8 +30,11 @@ void main() {
 
 layout(location = 0) in vec3 v_Position;
 layout(location = 1) in vec3 v_Normal;
+layout(location = 2) in vec2 v_TexCoord;
 
 layout(location = 0) out vec4 o_Color;
+
+uniform sampler2D u_Texture;
 
 vec4 DirectionalLight(vec4 fragColor) {
 	vec3 lightColor     = vec3(1.0f, 1.0f, 1.0f);
@@ -54,7 +57,8 @@ vec4 DirectionalLight(vec4 fragColor) {
 
 
 void main() {
-	o_Color = DirectionalLight(vec4(1.0f, 0.5f, 0.31f, 1.0f));
+	o_Color = texture(u_Texture, v_TexCoord);
+//	o_Color = DirectionalLight(vec4(1.0f, 0.5f, 0.31f, 1.0f));
 }
 
 

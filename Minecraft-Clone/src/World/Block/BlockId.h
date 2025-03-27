@@ -9,6 +9,7 @@ enum BlockId : uint16_t {
 	Air,
 	Dirt,
 	Grass,
+	CobbleStone,
 
 	TOTAL_TYPES
 };

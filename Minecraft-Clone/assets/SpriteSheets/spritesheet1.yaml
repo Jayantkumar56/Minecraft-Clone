@@ -1,0 +1,14 @@
+SpriteSheet:
+  Width: 64
+  Height: 64
+  Sprites:
+    - Name: cobblestone__TOP_SIDE_BOTTOM__
+      U: 16
+      V: 0
+      Width: 16
+      Height: 16
+    - Name: dirt__TOP_SIDE_BOTTOM__
+      U: 0
+      V: 0
+      Width: 16
+      Height: 16

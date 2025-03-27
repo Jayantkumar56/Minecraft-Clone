@@ -30,7 +30,7 @@ void CustomRenderer::BeginScene(const glm::mat4& projectionView, const glm::vec3
 	s_SceneData.CameraPosition       = cameraPos;
 }
 
-void CustomRenderer::SubmitMesh(Mesh& mesh, glm::mat4& modelMat) {
+void CustomRenderer::SubmitMesh(Mesh& mesh, Quirk::Ref<Quirk::Texture2D> spriteSheetTexture) {
 	if (!mesh.Positions.size()) return;
 
 	s_SceneData.MeshVertexArray->Bind();
@@ -49,7 +49,11 @@ void CustomRenderer::SubmitMesh(Mesh& mesh, glm::mat4& modelMat) {
 
 	s_SceneData.MeshShader->Bind();
 	s_SceneData.MeshShader->UploadUniform("u_ViewProjection", s_SceneData.ProjectionViewMatrix);
-	s_SceneData.MeshShader->UploadUniform("u_Transform", modelMat);
+
+	spriteSheetTexture->Bind(0);
+	int32_t  samplers      = 0;
+	uint32_t samplersCount = 1;
+	s_SceneData.MeshShader->UploadUniform("u_Texture", &samplers, samplersCount);
 
 	uint32_t vertCount = (uint32_t)mesh.Positions.size();
 	Quirk::RenderCommands::DrawVertices(vertCount);

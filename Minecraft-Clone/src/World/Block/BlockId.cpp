@@ -6,10 +6,11 @@
 
 
 static std::unordered_map<std::string_view, BlockId> const BlockTable = {
-	{ "None",              BlockId::None  },
-	{ "air",               BlockId::Air   },
-	{ "dirt",              BlockId::Dirt  },
-	{ "grass",             BlockId::Grass }
+	{ "None",              BlockId::None        },
+	{ "air",               BlockId::Air         },
+	{ "dirt",              BlockId::Dirt        },
+	{ "grass",             BlockId::Grass       },
+	{ "cobblestone",       BlockId::CobbleStone }
 };
 
 std::string_view BlockIdToString(BlockId id) {
@@ -18,6 +19,7 @@ std::string_view BlockIdToString(BlockId id) {
 		case BlockId::Air:                     return "air";
 		case BlockId::Dirt:                    return "dirt";
 		case BlockId::Grass:                   return "grass";
+		case BlockId::CobbleStone:             return "cobblestone";
 	}
 
 	QK_WARN("Invalid BlockId \"{0}\" provided", static_cast<int>(id));

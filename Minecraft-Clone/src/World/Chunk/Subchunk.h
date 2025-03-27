@@ -4,7 +4,7 @@
 
 
 #include "ChunkMesh.h"
-#include "ChunkMeshBuilder.h"
+#include "ChunkMeshGenerator.h"
 #include "World/Block/Block.h"
 
 #include <vector>
@@ -25,7 +25,7 @@ public:
 	void GenerateSubChunk() {
 		ChunkBlock* start = &m_Blocks[0];
 		ChunkBlock* end = start + SubChunkBlocksCount;
-		std::fill(start, end, ChunkBlock(BlockId::Grass));
+		std::fill(start, end, ChunkBlock(BlockId::CobbleStone));
 	}
 
 	BlockId GetBlockType(int x, int y, int z) const {
