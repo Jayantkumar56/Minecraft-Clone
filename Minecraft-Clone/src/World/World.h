@@ -6,16 +6,18 @@
 #include "World/Chunk/Chunk.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/TextureManager.h"
+#include "World/ChunkManager/ChunkManager.h"
 
 class GamePanel;
 
 class World {
 	friend class GamePanel;
 public:
-	World() {
+	World() : m_ChunkManager(this) {
 		m_TextureManager.LoadBlockSprites(m_BlockDataBase);
 
-		m_Chunks.emplace_back();
+		//m_Chunks.emplace_back();
+		m_ChunkManager.LoadChunksAroundPlayer(m_Player.GetPosition());
 	}
 
 	void OnUpdate()                   { m_Player.OnUpdate();            }
@@ -34,22 +36,15 @@ public:
 		return false;
 	}
 
+	const Player& GetPlayer() { return m_Player; }
+
 private:
 	void HandleResize(uint16_t width, uint16_t height) {
 		m_Player.m_CameraController.OnWindowResized(width, height);
 	}
 
 	void RenderWorld() {
-		const auto& camera = m_Player.GetCamera();
-		CustomRenderer::BeginScene(camera.GetViewProjection(), camera.GetPosition());
-
-		for (auto& chunk : m_Chunks) {
-			for (auto& subchunk : chunk.m_SubChunks) {
-				CustomRenderer::SubmitMesh(subchunk.m_Mesh.GetMesh(), m_TextureManager.GetSpriteSheetTexture());
-			}
-		}
-
-		CustomRenderer::EndScene();
+		m_ChunkManager.RenderChunks(m_Player.GetCamera(), m_TextureManager);
 	}
 
 	glm::vec3 GetPlayerPosition() { return m_Player.GetPosition(); }
@@ -57,10 +52,8 @@ private:
 private:
 	// player data;
 	Player m_Player;
-	
-	// chunks data;
-	std::vector<Chunk> m_Chunks;
 
 	TextureManager m_TextureManager;
 	BlockDataBase  m_BlockDataBase;
+	ChunkManager   m_ChunkManager;
 };

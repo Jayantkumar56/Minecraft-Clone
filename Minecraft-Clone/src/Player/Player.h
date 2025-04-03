@@ -15,8 +15,8 @@ public:
 
 	void OnUpdate() { m_CameraController.OnUpdate(); }
 
-	const auto& GetCamera()   { return m_CameraController.GetCamera();   }
-	const auto  GetPosition() { return m_CameraController.GetPosition(); }
+	const auto& GetCamera()   const { return m_CameraController.GetCamera();   }
+	const auto  GetPosition() const { return m_CameraController.GetPosition(); }
 
 	void SetControl(bool flag) { m_IsInControl = flag; }
 

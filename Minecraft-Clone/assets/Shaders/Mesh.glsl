@@ -40,8 +40,8 @@ vec4 DirectionalLight(vec4 fragColor) {
 	vec3 lightColor     = vec3(1.0f, 1.0f, 1.0f);
 	vec3 lightDirection = normalize(-vec3(-0.2f, -1.0f, -0.3f));
 
-	float ambientStrength  = 0.2f;
-	float diffuseStrength  = max(dot(v_Normal, lightDirection), 0.0f);
+	float ambientStrength  = 0.3f;
+	float diffuseStrength  = 0.8f * max(dot(v_Normal, lightDirection), 0.0f);
 //	float specularStrength = 0.5;
 
 //	vec3 viewDir    = normalize(u_CameraPosition - v_Position);
@@ -58,7 +58,7 @@ vec4 DirectionalLight(vec4 fragColor) {
 
 void main() {
 	o_Color = texture(u_Texture, v_TexCoord);
-//	o_Color = DirectionalLight(vec4(1.0f, 0.5f, 0.31f, 1.0f));
+	o_Color = DirectionalLight(o_Color);
 }
 
 

@@ -1,41 +1,49 @@
 
 
 #include "ChunkMeshGenerator.h"
-#include "Subchunk.h"
+#include "World/Chunk/Subchunk.h"
 #include "World/Block/BlockDataBase.h"
+#include "World/Chunk/Chunk.h"
 
-static void AddFaceXZLower(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData);
-static void AddFaceXZUpper(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData);
-static void AddFaceXYFront(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData);
-static void AddFaceXYBack (Mesh& mesh, const glm::vec3 pos, const BlockData& blockData);
-static void AddFaceYZLeft (Mesh& mesh, const glm::vec3 pos, const BlockData& blockData);
-static void AddFaceYZRight(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData);
+static void AddFaceXZLower(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+static void AddFaceXZUpper(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+static void AddFaceXYFront(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+static void AddFaceXYBack (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+static void AddFaceYZLeft (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+static void AddFaceYZRight(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
 
 void SubChunkMeshGenerator::GenerateMesh() {
-	Mesh& solidMesh = m_Mesh.GetMesh();
+	Mesh& solidMesh   = m_Mesh.GetMesh();
+	auto  subchunkPos = m_SubChunk.GetBlockPosition();
 
 	for (int j = 0; j < SubChunkSizeY; ++j) {
 		for (int i = 0; i < SubChunkSizeX; ++i) {
 			for (int k = 0; k < SubChunkSizeZ; ++k) {
 				const BlockData& blockData = m_SubChunk.GetBlock(i, j, k).GetBlockData();
 
+				glm::vec3 blockPos(
+					static_cast<float>(subchunkPos.x) + i,
+					static_cast<float>(subchunkPos.y) + j,
+					static_cast<float>(subchunkPos.z) + k
+				);
+
 				if (!m_SubChunk.IsSolidBlock(i, j - 1, k))
-					AddFaceXZLower(solidMesh, { i, j, k }, blockData);
+					AddFaceXZLower(solidMesh, blockPos, blockData);
 
 				if (!m_SubChunk.IsSolidBlock(i, j + 1, k))
-					AddFaceXZUpper(solidMesh, { i, j, k }, blockData);
+					AddFaceXZUpper(solidMesh, blockPos, blockData);
 
 				if (!m_SubChunk.IsSolidBlock(i, j, k + 1))
-					AddFaceXYFront(solidMesh, { i, j, k }, blockData);
+					AddFaceXYFront(solidMesh, blockPos, blockData);
 
 				if (!m_SubChunk.IsSolidBlock(i, j, k - 1))
-					AddFaceXYBack(solidMesh, { i, j, k }, blockData);
+					AddFaceXYBack(solidMesh, blockPos, blockData);
 
 				if (!m_SubChunk.IsSolidBlock(i - 1, j, k))
-					AddFaceYZLeft(solidMesh, { i, j, k }, blockData);
+					AddFaceYZLeft(solidMesh, blockPos, blockData);
 
 				if (!m_SubChunk.IsSolidBlock(i + 1, j, k))
-					AddFaceYZRight(solidMesh, { i, j, k }, blockData);
+					AddFaceYZRight(solidMesh, blockPos, blockData);
 			}
 		}
 	}
@@ -76,7 +84,7 @@ static void AddTextureCoords(Mesh& mesh, const glm::vec2& pos, const glm::vec2& 
 	mesh.UV.emplace_back(pos.x,          pos.y + size.y);
 }
 
-static void AddFaceYZLeft(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData) {
+static void AddFaceYZLeft(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
 	mesh.Positions.emplace_back(pos.x, pos.y,        pos.z       );
 	mesh.Positions.emplace_back(pos.x, pos.y,        pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z + 1.0f);
@@ -92,7 +100,7 @@ static void AddFaceYZLeft(Mesh& mesh, const glm::vec3 pos, const BlockData& bloc
 	AddTextureCoords(mesh, blockData.SideFace.Pos, blockData.SideFace.Size);
 }
 
-static void AddFaceYZRight(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData) {
+static void AddFaceYZRight(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z       );
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z       );
@@ -108,7 +116,7 @@ static void AddFaceYZRight(Mesh& mesh, const glm::vec3 pos, const BlockData& blo
 	AddTextureCoords(mesh, blockData.SideFace.Pos, blockData.SideFace.Size);
 }
 
-static void AddFaceXZLower(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData) {
+static void AddFaceXZLower(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
 	mesh.Positions.emplace_back(pos.x,        pos.y, pos.z       );
 	mesh.Positions.emplace_back(pos.x,        pos.y, pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z + 1.0f);
@@ -124,7 +132,7 @@ static void AddFaceXZLower(Mesh& mesh, const glm::vec3 pos, const BlockData& blo
 	AddTextureCoords(mesh, blockData.BottomFace.Pos, blockData.BottomFace.Size);
 }
 
-static void AddFaceXZUpper(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData) {
+static void AddFaceXZUpper(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
 	mesh.Positions.emplace_back(pos.x,        pos.y + 1.0f, pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z       );
@@ -140,7 +148,7 @@ static void AddFaceXZUpper(Mesh& mesh, const glm::vec3 pos, const BlockData& blo
 	AddTextureCoords(mesh, blockData.TopFace.Pos, blockData.TopFace.Size);
 }
 
-static void AddFaceXYFront(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData) {
+static void AddFaceXYFront(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
 	mesh.Positions.emplace_back(pos.x,        pos.y,        pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z + 1.0f);
@@ -156,7 +164,7 @@ static void AddFaceXYFront(Mesh& mesh, const glm::vec3 pos, const BlockData& blo
 	AddTextureCoords(mesh, blockData.SideFace.Pos, blockData.SideFace.Size);
 }
 
-static void AddFaceXYBack(Mesh& mesh, const glm::vec3 pos, const BlockData& blockData) {
+static void AddFaceXYBack(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z);
 	mesh.Positions.emplace_back(pos.x,        pos.y,        pos.z);
 	mesh.Positions.emplace_back(pos.x,        pos.y + 1.0f, pos.z);
@@ -172,3 +180,6 @@ static void AddFaceXYBack(Mesh& mesh, const glm::vec3 pos, const BlockData& bloc
 	AddTextureCoords(mesh, blockData.SideFace.Pos, blockData.SideFace.Size);
 }
 
+void ChunkMeshGenerator::Generate(Chunk& chunk) {
+	chunk.GenerateChunkMesh();
+}
