@@ -1,11 +1,13 @@
 
 
-#include "ChunkManager.h"
-#include "World/World.h"
-#include "World/TerrainGenerator/TerrainGenerator.h"
 #include "World/ChunkManager/ChunkMeshGenerator.h"
+#include "World/TerrainGenerator/TerrainGenerator.h"
 
-#include <unordered_set>
+#include "Player/Player.h"
+#include "Renderer/TextureManager.h"
+#include "Renderer/Renderer.h"
+
+#include "ChunkManager.h"
 
 
 void ChunkManager::LoadChunksAroundPlayer(glm::vec3 playerPos) {
@@ -30,7 +32,7 @@ void ChunkManager::LoadChunksAroundPlayer(glm::vec3 playerPos) {
 				m_Chunks.emplace(
 					std::piecewise_construct,
 					std::forward_as_tuple(chunkPos),
-					std::forward_as_tuple(chunkPos)
+					std::forward_as_tuple()
 				);
 
 				SubmitChunkForTerrainGeneraion(chunkPos);

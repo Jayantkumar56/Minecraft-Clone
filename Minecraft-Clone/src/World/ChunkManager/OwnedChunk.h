@@ -6,19 +6,12 @@
 #include "ChunkOwnershipTokens.h"
 #include "SubchunkView.h"
 
-#include "glm/glm.hpp"
-
 
 class OwnedChunk {
 	friend class TerrainOwnershipToken<OwnedChunk>;
 	friend class MeshOwnershipToken<OwnedChunk>;
 public:
 	OwnedChunk() = default;
-
-	OwnedChunk(glm::i16vec2 chunkPos) :
-			m_Chunk(chunkPos)
-	{
-	}
 
 	inline TerrainOwnershipToken<OwnedChunk> GetTerrainOwnership() noexcept {
 		OwnedChunk* ptr = nullptr;

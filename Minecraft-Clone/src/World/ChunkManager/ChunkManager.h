@@ -4,16 +4,11 @@
 
 #include "World/Chunk/Chunk.h"
 #include "Utility/ThreadPool.h"
-#include "Player/Player.h"
-#include "Renderer/TextureManager.h"
-#include "Renderer/Renderer.h"
-
 #include "OwnedChunk.h"
 
-#include <mutex>
 #include <shared_mutex>
 #include <unordered_map>
-#include <glm/glm.hpp>
+
 
 namespace std {
 
@@ -44,7 +39,7 @@ public:
 
 	void LoadChunksAroundPlayer(glm::vec3 playerPos);
 
-	void RenderChunks(const PerspectiveCamera& camera, TextureManager& textureManager);
+	void RenderChunks(const ::PerspectiveCamera& camera, TextureManager& textureManager);
 
 	void OnUpdate();
 
