@@ -10,7 +10,7 @@ class CustomRenderer {
 public:
 	static void InitRenderer();
 	static void BeginScene(const glm::mat4& projectionView, const glm::vec3& cameraPos);
-	static void SubmitMesh(Mesh& mesh, Quirk::Ref<Quirk::Texture2D> spriteSheetTexture);
+	static void SubmitMesh(const Mesh& mesh, Quirk::Ref<Quirk::Texture2D> spriteSheetTexture);
 	static void EndScene();
 
 private:

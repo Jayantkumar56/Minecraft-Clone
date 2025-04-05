@@ -30,7 +30,7 @@ void CustomRenderer::BeginScene(const glm::mat4& projectionView, const glm::vec3
 	s_SceneData.CameraPosition       = cameraPos;
 }
 
-void CustomRenderer::SubmitMesh(Mesh& mesh, Quirk::Ref<Quirk::Texture2D> spriteSheetTexture) {
+void CustomRenderer::SubmitMesh(const Mesh& mesh, Quirk::Ref<Quirk::Texture2D> spriteSheetTexture) {
 	if (!mesh.Positions.size()) return;
 
 	s_SceneData.MeshVertexArray->Bind();

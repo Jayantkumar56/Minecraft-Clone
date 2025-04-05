@@ -1,7 +1,7 @@
 project "Minecraft-Clone"
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++20"
+    cppdialect "C++latest"
     staticruntime "On"
     
     targetdir ("../bin/" .. outputdir .. "/%{prj.name}")

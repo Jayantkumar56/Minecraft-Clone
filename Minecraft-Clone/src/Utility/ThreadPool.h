@@ -34,7 +34,7 @@ public:
 		}
 	}
 
-	void AddTask(std::function<void()>&& task) {
+	void AddTask(std::move_only_function<void()>&& task) {
 		std::lock_guard<std::mutex> lock(m_TaskQueueMutex);
 		m_TaskQueue.emplace(std::move(task));
 
@@ -42,7 +42,7 @@ public:
 		m_TaskQueueCV.notify_one();
 	}
 
-	void AddTasks(std::vector<std::function<void()>>& tasks) {
+	void AddTasks(std::vector<std::move_only_function<void()>>& tasks) {
 		std::lock_guard<std::mutex> lock(m_TaskQueueMutex);
 
 		for (size_t i = 0; i < tasks.size(); ++i) {
@@ -66,7 +66,7 @@ private:
 			m_TaskQueueCV.wait(lock, [this] { return this->m_ShutdownRequested || !this->m_TaskQueue.empty(); });
 
 			if (!m_TaskQueue.empty()) {
-				std::function<void()> func = std::move(m_TaskQueue.front());
+				std::move_only_function<void()> func = std::move(m_TaskQueue.front());
 				m_TaskQueue.pop();
 
 				lock.unlock();
@@ -80,7 +80,7 @@ private:
 	bool m_ShutdownRequested;
 
 	std::vector<std::thread>          m_Threads;
-	std::queue<std::function<void()>> m_TaskQueue;
+	std::queue<std::move_only_function<void()>> m_TaskQueue;
 
 	std::mutex              m_TaskQueueMutex;
 	std::condition_variable m_TaskQueueCV;

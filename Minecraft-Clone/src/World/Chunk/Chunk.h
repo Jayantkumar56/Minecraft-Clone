@@ -4,28 +4,7 @@
 
 #include "Subchunk.h"
 
-enum class ChunkNeighbourLocation {
-	PositiveX = 0, NegativeX, PositiveY, NegativeY, NeighboursCount
-};
-
-struct ChunkTerrainData {
-	ChunkTerrainData() : Data(SubChunkCountInChunk) { 
-		for (size_t i = 0; i < Data.size(); ++i) {
-			Data[i] = std::vector<ChunkBlock>(SubChunkBlocksCount, ChunkBlock(BlockId::Dirt));
-		}
-	}
-
-	std::vector<ChunkBlock>& operator[](size_t index) noexcept {
-		return Data[index];
-	}
-
-private:
-	std::vector<std::vector<ChunkBlock>> Data;
-};
-
 class Chunk {
-	friend class World;
-	friend class ChunkManager;
 public:
 	Chunk() = default;
 
@@ -36,17 +15,20 @@ public:
 		m_SubChunks.emplace_back(subchunkPos);
 	}
 
-	void GenerateChunkMesh() {
-		for (size_t i = 0; i < m_SubChunks.size(); ++i) {
-			m_SubChunks[i].GenerateSubChunkMesh();
-		}
+	inline auto& GetSubchunkTerrain(int subchunkIndex) {
+		return m_SubChunks[subchunkIndex].GetTerrain();
 	}
 
-private:
-	void SetTerrain(ChunkTerrainData&& terrain) {
-		for (int i = 0; i < SubChunkCountInChunk; ++i) {
-			m_SubChunks[i].SetTerrain( std::move(terrain[i]) );
-		}
+	inline const auto& GetSubchunkTerrain(const int subchunkIndex) const {
+		return m_SubChunks[subchunkIndex].GetTerrain();
+	}
+
+	inline auto& GetSubchunkMesh(int subchunkIndex) {
+		return m_SubChunks[subchunkIndex].GetMesh();
+	}
+
+	inline const auto& GetSubchunkMesh(const int subchunkIndex) const {
+		return m_SubChunks[subchunkIndex].GetMesh();
 	}
 
 private:

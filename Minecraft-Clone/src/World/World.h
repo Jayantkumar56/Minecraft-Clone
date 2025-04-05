@@ -20,7 +20,11 @@ public:
 		m_ChunkManager.LoadChunksAroundPlayer(m_Player.GetPosition());
 	}
 
-	void OnUpdate()                   { m_Player.OnUpdate();            }
+	void OnUpdate() { 
+		m_Player.OnUpdate();
+		m_ChunkManager.OnUpdate();
+	}
+
 	bool OnEvent(Quirk::Event& event) {
 		Quirk::EventDispatcher::HandleEvent<Quirk::KeyPressedEvent>([&](Quirk::KeyPressedEvent& event) -> bool {
 			if (event.GetKeyCode() == QK_Key_T) {

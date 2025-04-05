@@ -2,31 +2,24 @@
 
 #pragma once
 
-#include "World/Chunk/Constants.h"
-#include "World/Chunk/ChunkMesh.h"
-#include "World/Block/Block.h"
 
-class SubChunk;
-class Chunk;
+#include "SubchunkView.h"
 
 class SubChunkMeshGenerator {
 public:
-	SubChunkMeshGenerator(SubChunk& subchunk, ChunkMesh& mesh, std::vector<ChunkBlock>& blocks) :
-			m_SubChunk ( subchunk ),
-			m_Mesh     ( mesh     ), 
-			m_Blocks   ( blocks   )
+	SubChunkMeshGenerator(ChunkMesh& mesh, std::vector<ChunkBlock>& blocks)
 	{}
 
-	void GenerateMesh();
+	static void Generate(ChunkMesh& mesh, SubchunkTerrainView terrain, glm::i16vec3 pos);
 
 private:
-	SubChunk&  m_SubChunk;
-	ChunkMesh& m_Mesh;
-	std::vector<ChunkBlock>& m_Blocks;
+	static void AddTextureCoords(Mesh& mesh, const glm::vec2& pos, const glm::vec2& size);
+
+	static void AddFaceXZLower(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	static void AddFaceXZUpper(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	static void AddFaceXYFront(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	static void AddFaceXYBack (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	static void AddFaceYZLeft (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	static void AddFaceYZRight(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
 };
 
-
-class ChunkMeshGenerator {
-public:
-	static void Generate(Chunk& chunk);
-};

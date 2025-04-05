@@ -10,172 +10,179 @@
 
 void ChunkManager::LoadChunksAroundPlayer(glm::vec3 playerPos) {
 	uint32_t     renderDistance = RenderDistance;
-	glm::i16vec2 playerChunkPos = BlockPositionToChunkPosition(playerPos.x, playerPos.z);
+	glm::i16vec2 playerChunkPos = glm::i16vec2(
+		static_cast<uint16_t>(std::floor(playerPos.x / SubChunkSizeX)),
+		static_cast<uint16_t>(std::floor(playerPos.z / SubChunkSizeZ))
+	);
 
 	std::queue<glm::i16vec2> chunkProcessingQueue;
 	chunkProcessingQueue.push(playerChunkPos);
 
 	// chunk sequence for terrain generation
 	{
-		std::scoped_lock lock(m_ChunksMutex, m_ChunkMetaDataMutex);
+		std::unique_lock lock(m_ChunksMutex);
 
 		while (!chunkProcessingQueue.empty()) {
 			glm::i16vec2 chunkPos = chunkProcessingQueue.front();
 			chunkProcessingQueue.pop();
 			
 			if (!m_Chunks.contains(chunkPos)) {
-				/*m_Chunks.emplace(
+				m_Chunks.emplace(
 					std::piecewise_construct,
-					std::forward_as_tuple(chunkPos.x, chunkPos.y),
+					std::forward_as_tuple(chunkPos),
 					std::forward_as_tuple(chunkPos)
-				);*/
-
-				m_Chunks.emplace(chunkPos, Chunk(chunkPos));
-
-				m_ChunkMetaData.emplace(
-					std::piecewise_construct,
-					std::forward_as_tuple(chunkPos.x, chunkPos.y),
-					std::forward_as_tuple(false, false, false, false)
 				);
 
 				SubmitChunkForTerrainGeneraion(chunkPos);
 
 				// check for neighbouring chunks
 				{
-					if (chunkPos.x += 1; std::abs(chunkPos.x - playerChunkPos.x) < renderDistance && !m_Chunks.contains(chunkPos)) {
+					if (chunkPos.x += 1; (uint16_t)std::abs(chunkPos.x - playerChunkPos.x) < renderDistance && !m_Chunks.contains(chunkPos)) {
 						chunkProcessingQueue.emplace(chunkPos.x, chunkPos.y);
 					}
-					if (chunkPos.x -= 2; std::abs(chunkPos.x - playerChunkPos.x) < renderDistance && !m_Chunks.contains(chunkPos)) {
+					if (chunkPos.x -= 2; (uint16_t)std::abs(chunkPos.x - playerChunkPos.x) < renderDistance && !m_Chunks.contains(chunkPos)) {
 						chunkProcessingQueue.emplace(chunkPos.x, chunkPos.y);
 					}
 
 					chunkPos.x += 1;
-					if (chunkPos.y += 1; std::abs(chunkPos.y - playerChunkPos.y) < renderDistance && !m_Chunks.contains(chunkPos)) {
+					if (chunkPos.y += 1; (uint16_t)std::abs(chunkPos.y - playerChunkPos.y) < renderDistance && !m_Chunks.contains(chunkPos)) {
 						chunkProcessingQueue.emplace(chunkPos.x, chunkPos.y);
 					}
-					if (chunkPos.y -= 2; std::abs(chunkPos.y - playerChunkPos.y) < renderDistance && !m_Chunks.contains(chunkPos)) {
+					if (chunkPos.y -= 2; (uint16_t)std::abs(chunkPos.y - playerChunkPos.y) < renderDistance && !m_Chunks.contains(chunkPos)) {
 						chunkProcessingQueue.emplace(chunkPos.x, chunkPos.y);
 					}
 				}
 			}
 		}
+	}
+}
+
+void ChunkManager::RenderChunks(const PerspectiveCamera& camera, TextureManager& textureManager) {
+	CustomRenderer::BeginScene(camera.GetViewProjection(), camera.GetPosition());
+
+	std::shared_lock lock(m_ChunksMutex);
+
+	for (const auto& [chunkPos, chunk] : m_Chunks) {
+		if (chunk.HaveMesh()) {
+			for (int i = 0; i < SubChunkCountInChunk; ++i) {
+				const ChunkMesh& mesh = chunk.GetSubchunkMeshView(i).GetMesh();
+				CustomRenderer::SubmitMesh(mesh.GetMesh(), textureManager.GetSpriteSheetTexture());
+			}
+		}
+	}
+
+	CustomRenderer::EndScene();
+}
+
+void ChunkManager::OnUpdate() {
+	{
+		std::unique_lock lock2(m_ChunksMutex, std::defer_lock); // exclusive lock
+		std::unique_lock lock1(m_MeshGenerationQueueMutex, std::defer_lock);
+
+		std::lock(lock1, lock2);
+
+		for (size_t i = 0; i < m_MeshGenerationQueue.size(); ++i) {
+			SubmitChunkForMeshGeneration(m_MeshGenerationQueue[i]);
+		}
+
+		m_MeshGenerationQueue.clear();
 	}
 }
 
 void ChunkManager::SubmitChunkForMeshGeneration(glm::i16vec2 chunkPos) {
-	// this thread should execute only after acquiring ownership
-	// of the chunk's and it's neighbour's terrain 
-	// thus the chunk at chunkPos and it's neighbours 
-	// can be accessed without acquiring lock
-	m_ChunkMeshGeneratorThreadPool.AddTask([chunkPos, this]() {
-		ChunkMeshGenerator::Generate(m_Chunks[chunkPos]);
-		std::this_thread::sleep_for(std::chrono::seconds(2));
+	m_ChunkMeshGeneratorThreadPool.AddTask( std::move(
+		[chunkPos, meshToken = std::move(m_Chunks[chunkPos].GetMeshOwnership()), this] () mutable {
+			// accessing the current and it's neighbour chunk's terrain as read only for mesh generation
+			std::shared_lock chunksLock(m_ChunksMutex);
 
-		std::lock_guard lock(m_ChunkMetaDataMutex);
-		ReleaseNeighbourChunkOwnership(chunkPos);
+			if (!meshToken.IsTerrainAvailable() || !NeighboursTerrainAvailable(chunkPos)) {
+				chunksLock.unlock();
 
-		m_ChunkMetaData[chunkPos].MeshGenerated = true;
-		m_ChunkMetaData[chunkPos].HaveMeshOwnership = true;
-	});
+				std::unique_lock lock(m_MeshGenerationQueueMutex);
+				m_MeshGenerationQueue.emplace_back(chunkPos.x, chunkPos.y);
+
+				meshToken.Release();
+				return;
+			}
+
+			// get terrain views of the neighbours
+
+			// mesh generation code
+			{
+				const auto& chunk = m_Chunks[chunkPos];
+
+				for (int i = 0; i < SubChunkCountInChunk; ++i) {
+					auto& subchunkMesh = meshToken.GetSubchunkMesh(i);
+					auto  terrainView  = chunk.GetSubchunkTerrainView(i);
+
+					glm::i16vec3 pos (
+						chunkPos.x * SubChunkSizeX,
+						i * SubChunkSizeY,
+						chunkPos.y * SubChunkSizeZ
+					);
+
+					SubChunkMeshGenerator::Generate(subchunkMesh, terrainView, pos);
+				}
+
+				meshToken.SetMeshGenerated();
+				meshToken.Release();
+			}
+		}
+	));
 }
 
 void ChunkManager::SubmitChunkForTerrainGeneraion(glm::i16vec2 chunkPos) {
-	m_TerrainGeneratorThreadPool.AddTask([chunkPos, this] {
-		// generating terrain
-		{
-			ChunkTerrainData terrain;
-			TerrainGenerator::Generate(chunkPos, terrain);
-			std::this_thread::sleep_for(std::chrono::seconds(7));
-
-			std::lock_guard lock(m_ChunksMutex);
-			if (!m_Chunks.contains(chunkPos))
-				return;
-
-			m_Chunks[chunkPos].SetTerrain(std::move(terrain));
-		}
-
-		// submiting for mesh generation
-		{
-			bool gotNeighbours = false;
-
+	m_TerrainGeneratorThreadPool.AddTask( std::move(
+		[chunkPos, terrainToken = std::move(m_Chunks[chunkPos].GetTerrainOwnership()), this] () mutable {
+			// generating terrain
 			{
-				std::lock_guard lock(m_ChunkMetaDataMutex);
-				m_ChunkMetaData[chunkPos].TerrainGenerated = true;
-				gotNeighbours = GetNeighbourChunkOwnership(chunkPos);
-			}
+				// terrain generation code
+				for (int i = 0; i < SubChunkCountInChunk; ++i) {
+					std::vector<ChunkBlock>& subchunkTerrain = terrainToken.GetSubchunkTerrain(i);
 
-			if (gotNeighbours) {
-				SubmitChunkForMeshGeneration(chunkPos);
-			}
-			else {
-				// releasing ownership of the current current chunk
-				{
-					std::lock_guard lock(m_ChunkMetaDataMutex);
-
-					m_ChunkMetaData[chunkPos].HaveMeshOwnership    = true;
-					m_ChunkMetaData[chunkPos].HaveTerrainOwnership = true;
+					ChunkBlock* start = &subchunkTerrain[0];
+					ChunkBlock* end   = start + SubChunkBlocksCount;
+					std::fill(start, end, ChunkBlock(BlockId::CobbleStone));
 				}
 
-				// make chunk wait for neighbour chunks
-				{
-					std::lock_guard lock(m_MeshGenerationQueueMutex);
-					m_MeshGenerationQueue.emplace_back(chunkPos.x, chunkPos.y);
-				}
+				terrainToken.SetTerrainGenerated();
+				terrainToken.Release();
 			}
+
+			std::unique_lock lock(m_ChunksMutex);
+			SubmitChunkForMeshGeneration(chunkPos);
 		}
-	});
+	));
 }
 
-bool ChunkManager::GetNeighbourChunkOwnership(glm::i16vec2 chunkPos) {
-	bool result = false;
+bool ChunkManager::NeighboursTerrainAvailable(glm::i16vec2 chunkPos) const {
+	bool neighboursAvailable = true;
 
-	bool positiveXNeighbourExist = false;
-	bool negativeXNeighbourExist = false;
-	bool positiveYNeighbourExist = false;
-	bool negativeYNeighbourExist = false;
-
-	bool positiveXNeighbourOwnership = false;
-	bool negativeXNeighbourOwnership = false;
-	bool positiveYNeighbourOwnership = false;
-	bool negativeYNeighbourOwnership = false;
-
-	if (chunkPos.x += 1; m_ChunkMetaData.contains(chunkPos)) {
-		positiveXNeighbourExist     = true;
-		positiveXNeighbourOwnership = m_ChunkMetaData[chunkPos].HaveTerrainOwnership;
-	}
-	if (chunkPos.x -= 2; m_ChunkMetaData.contains(chunkPos)) {
-		negativeXNeighbourExist     = true;
-		negativeXNeighbourOwnership = m_ChunkMetaData[chunkPos].HaveTerrainOwnership;
+	{
+		chunkPos.x += 1;
+		auto itr = m_Chunks.find(chunkPos);
+		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
 	}
 
+	{
+		chunkPos.x -= 2;
+		auto itr = m_Chunks.find(chunkPos);
+		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
+	}
+	
 	chunkPos.x += 1;
-	if (chunkPos.y += 1; m_ChunkMetaData.contains(chunkPos)) {
-		positiveYNeighbourExist     = true;
-		positiveYNeighbourOwnership = m_ChunkMetaData[chunkPos].HaveTerrainOwnership;
-	}
-	if (chunkPos.y -= 2; m_ChunkMetaData.contains(chunkPos)) {
-		negativeYNeighbourExist     = true;
-		negativeYNeighbourOwnership = m_ChunkMetaData[chunkPos].HaveTerrainOwnership;
+	{
+		chunkPos.y += 1;
+		auto itr = m_Chunks.find(chunkPos);
+		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
 	}
 
+	{
+		chunkPos.y -= 2;
+		auto itr = m_Chunks.find(chunkPos);
+		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
+	}
 
-
-	return true;
+	return neighboursAvailable;
 }
 
-void ChunkManager::ReleaseNeighbourChunkOwnership(glm::i16vec2 chunkPos) {
-	if (chunkPos.x += 1; m_ChunkMetaData.contains(chunkPos)) {
-		m_ChunkMetaData[chunkPos].HaveTerrainOwnership = true;
-	}
-	if (chunkPos.x -= 2; m_ChunkMetaData.contains(chunkPos)) {
-		m_ChunkMetaData[chunkPos].HaveTerrainOwnership = true;
-	}
-
-	chunkPos.x += 1;
-	if (chunkPos.y += 1; m_ChunkMetaData.contains(chunkPos)) {
-		m_ChunkMetaData[chunkPos].HaveTerrainOwnership = true;
-	}
-	if (chunkPos.y -= 2; m_ChunkMetaData.contains(chunkPos)) {
-		m_ChunkMetaData[chunkPos].HaveTerrainOwnership = true;
-	}
-}

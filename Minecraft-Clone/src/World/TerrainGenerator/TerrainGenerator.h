@@ -8,7 +8,7 @@
 
 class TerrainGenerator {
 public:
-	static void Generate(glm::i16vec2 chunkPos, ChunkTerrainData& terrainData) {
+	static void Generate(glm::i16vec2 chunkPos) {
 
 	}
 };
