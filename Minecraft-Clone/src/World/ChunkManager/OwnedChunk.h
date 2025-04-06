@@ -40,11 +40,13 @@ public:
 	}
 
 	inline auto GetSubchunkTerrainView(const int subchunkIndex) const {
-		return SubchunkTerrainView(m_Chunk.GetSubchunkTerrain(subchunkIndex));
+		const std::vector<ChunkBlock>* blocks = HaveTerrain() ? &m_Chunk.GetSubchunkTerrain(subchunkIndex) : nullptr;
+		return SubchunkTerrainView(blocks);
 	}
 
 	inline auto GetSubchunkMeshView(const int subchunkIndex) const {
-		return SubchunkMeshView(m_Chunk.GetSubchunkMesh(subchunkIndex));
+		const ChunkMesh* mesh = HaveMesh() ? &m_Chunk.GetSubchunkMesh(subchunkIndex) : nullptr;
+		return SubchunkMeshView(mesh);
 	}
 
 	inline bool HaveMesh() const noexcept {

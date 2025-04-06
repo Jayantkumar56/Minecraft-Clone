@@ -7,7 +7,8 @@
 class Chunk {
 public:
 	Chunk() {
-		m_SubChunks.emplace_back();
+		for (int i = 0; i < SubChunkCountInChunk; ++i)
+			m_SubChunks.emplace_back();
 	}
 
 	inline auto& GetSubchunkTerrain(int subchunkIndex) {

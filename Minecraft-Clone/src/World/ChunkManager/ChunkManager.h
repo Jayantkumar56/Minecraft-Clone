@@ -26,7 +26,7 @@ namespace std {
 class World;
 
 // distance in number of chunks
-constexpr uint32_t RenderDistance = 5;
+constexpr uint32_t RenderDistance = 2;
 
 class ChunkManager {
 public:
@@ -53,6 +53,15 @@ private:
 	void SubmitChunkForTerrainGeneraion(glm::i16vec2 chunkPos);
 
 	bool NeighboursTerrainAvailable(glm::i16vec2 chunkPos) const;
+
+	inline SubchunkTerrainView GetSubchunkTerrainView(glm::i16vec2 chunkPos, int subchunkIndex) const noexcept {
+		auto itr =  m_Chunks.find(chunkPos);
+
+		if (itr == m_Chunks.end() || subchunkIndex < 0 || SubChunkCountInChunk <= subchunkIndex)
+			return SubchunkTerrainView(nullptr);
+		
+		return itr->second.GetSubchunkTerrainView(subchunkIndex);
+	}
 
 private:
 	World* m_World;

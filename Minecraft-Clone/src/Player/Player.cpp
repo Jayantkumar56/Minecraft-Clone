@@ -10,7 +10,7 @@ Player::Player() :
 				.AspectRatio { 1.0f                         },
 				.ZNear       { 1.0f                         },
 				.ZFar        { 1000.0f                      },
-				.Position    { glm::vec3(17.0f, 17.0f, 17.0f)  },
+				.Position    { glm::vec3(8.0f, 17.0f, 8.0f)  },
 				.Up          { glm::vec3(0.0f, 1.0f, 0.0f)  },
 				.Forward     { glm::vec3(0.0f, 0.0f, 1.0f) },
 			},

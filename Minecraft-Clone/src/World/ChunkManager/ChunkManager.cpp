@@ -107,7 +107,10 @@ void ChunkManager::SubmitChunkForMeshGeneration(glm::i16vec2 chunkPos) {
 				return;
 			}
 
-			// get terrain views of the neighbours
+			glm::i16vec2 positiveXNeighbourPos (chunkPos.x +1, chunkPos.y   );
+			glm::i16vec2 negativeXNeighbourPos (chunkPos.x -1, chunkPos.y   );
+			glm::i16vec2 positiveZNeighbourPos (chunkPos.x,    chunkPos.y +1);
+			glm::i16vec2 negativeZNeighbourPos (chunkPos.x,    chunkPos.y -1);
 
 			// mesh generation code
 			{
@@ -123,7 +126,18 @@ void ChunkManager::SubmitChunkForMeshGeneration(glm::i16vec2 chunkPos) {
 						chunkPos.y * SubChunkSizeZ
 					);
 
-					SubChunkMeshGenerator::Generate(subchunkMesh, terrainView, pos);
+					SubchunkTerrainViewEx terrain (
+						GetSubchunkTerrainView ( chunkPos,              i    ),
+						GetSubchunkTerrainView ( positiveXNeighbourPos, i    ),
+						GetSubchunkTerrainView ( negativeXNeighbourPos, i    ),
+						GetSubchunkTerrainView ( chunkPos,              i +1 ),
+						GetSubchunkTerrainView ( chunkPos,              i -1 ),
+						GetSubchunkTerrainView ( positiveZNeighbourPos, i    ),
+						GetSubchunkTerrainView ( negativeZNeighbourPos, i    )
+					);
+
+					SubChunkMeshGenerator generator(pos, meshToken.GetSubchunkMesh(i), terrain);
+					generator.Generate();
 				}
 
 				meshToken.SetMeshGenerated();
@@ -163,26 +177,38 @@ bool ChunkManager::NeighboursTerrainAvailable(glm::i16vec2 chunkPos) const {
 	{
 		chunkPos.x += 1;
 		auto itr = m_Chunks.find(chunkPos);
-		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
+
+		if (itr != m_Chunks.end()) {
+			neighboursAvailable = neighboursAvailable && itr->second.HaveTerrain();
+		}
 	}
 
 	{
 		chunkPos.x -= 2;
 		auto itr = m_Chunks.find(chunkPos);
-		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
+
+		if (itr != m_Chunks.end()) {
+			neighboursAvailable = neighboursAvailable && itr->second.HaveTerrain();
+		}
 	}
 	
 	chunkPos.x += 1;
 	{
 		chunkPos.y += 1;
 		auto itr = m_Chunks.find(chunkPos);
-		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
+
+		if (itr != m_Chunks.end()) {
+			neighboursAvailable = neighboursAvailable && itr->second.HaveTerrain();
+		}
 	}
 
 	{
 		chunkPos.y -= 2;
 		auto itr = m_Chunks.find(chunkPos);
-		neighboursAvailable = neighboursAvailable && itr != m_Chunks.end() && itr->second.HaveTerrain();
+
+		if (itr != m_Chunks.end()) {
+			neighboursAvailable = neighboursAvailable && itr->second.HaveTerrain();
+		}
 	}
 
 	return neighboursAvailable;

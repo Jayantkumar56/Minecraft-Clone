@@ -7,19 +7,28 @@
 
 class SubChunkMeshGenerator {
 public:
-	SubChunkMeshGenerator(ChunkMesh& mesh, std::vector<ChunkBlock>& blocks)
-	{}
+	SubChunkMeshGenerator(glm::i16vec3 pos,ChunkMesh& mesh, SubchunkTerrainViewEx terrain) :
+			m_Pos     ( pos     ),
+			m_Mesh    ( mesh    ),
+			m_Terrain ( terrain )
+	{
+	}
 
-	static void Generate(ChunkMesh& mesh, SubchunkTerrainView terrain, glm::i16vec3 pos);
+	void Generate();
 
 private:
-	static void AddTextureCoords(Mesh& mesh, const glm::vec2& pos, const glm::vec2& size);
+	void AddTextureCoords(Mesh& mesh, const glm::vec2& pos, const glm::vec2& size);
 
-	static void AddFaceXZLower(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
-	static void AddFaceXZUpper(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
-	static void AddFaceXYFront(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
-	static void AddFaceXYBack (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
-	static void AddFaceYZLeft (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
-	static void AddFaceYZRight(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	void AddFaceXZLower(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	void AddFaceXZUpper(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	void AddFaceXYFront(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	void AddFaceXYBack (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	void AddFaceYZLeft (Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+	void AddFaceYZRight(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData);
+
+private:
+	glm::i16vec3 m_Pos;
+	ChunkMesh&   m_Mesh;
+	SubchunkTerrainViewEx m_Terrain;
 };
 

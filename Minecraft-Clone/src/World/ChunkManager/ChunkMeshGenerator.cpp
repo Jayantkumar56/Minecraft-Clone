@@ -3,14 +3,14 @@
 #include "ChunkMeshGenerator.h"
 
 
-void SubChunkMeshGenerator::Generate(ChunkMesh& mesh, SubchunkTerrainView terrain, glm::i16vec3 pos) {
-	Mesh& solidMesh   = mesh.GetMesh();
-	auto  subchunkPos = pos;
+void SubChunkMeshGenerator::Generate() {
+	Mesh& solidMesh   = m_Mesh.GetMesh();
+	auto  subchunkPos = m_Pos;
 
 	for (int j = 0; j < SubChunkSizeY; ++j) {
 		for (int i = 0; i < SubChunkSizeX; ++i) {
 			for (int k = 0; k < SubChunkSizeZ; ++k) {
-				const BlockData& blockData = terrain.GetBlock(i, j, k).GetBlockData();
+				const BlockData& blockData = m_Terrain.GetBlock(i, j, k).GetBlockData();
 
 				glm::vec3 blockPos(
 					static_cast<float>(subchunkPos.x) + i,
@@ -18,22 +18,22 @@ void SubChunkMeshGenerator::Generate(ChunkMesh& mesh, SubchunkTerrainView terrai
 					static_cast<float>(subchunkPos.z) + k
 				);
 
-				if (!terrain.IsSolidBlock(i, j - 1, k))
+				if (!m_Terrain.IsSolidBlock(i, j - 1, k))
 					AddFaceXZLower(solidMesh, blockPos, blockData);
 
-				if (!terrain.IsSolidBlock(i, j + 1, k))
+				if (!m_Terrain.IsSolidBlock(i, j + 1, k))
 					AddFaceXZUpper(solidMesh, blockPos, blockData);
 
-				if (!terrain.IsSolidBlock(i, j, k + 1))
+				if (!m_Terrain.IsSolidBlock(i, j, k + 1))
 					AddFaceXYFront(solidMesh, blockPos, blockData);
 
-				if (!terrain.IsSolidBlock(i, j, k - 1))
+				if (!m_Terrain.IsSolidBlock(i, j, k - 1))
 					AddFaceXYBack(solidMesh, blockPos, blockData);
 
-				if (!terrain.IsSolidBlock(i - 1, j, k))
+				if (!m_Terrain.IsSolidBlock(i - 1, j, k))
 					AddFaceYZLeft(solidMesh, blockPos, blockData);
 
-				if (!terrain.IsSolidBlock(i + 1, j, k))
+				if (!m_Terrain.IsSolidBlock(i + 1, j, k))
 					AddFaceYZRight(solidMesh, blockPos, blockData);
 			}
 		}
@@ -66,23 +66,23 @@ void SubChunkMeshGenerator::Generate(ChunkMesh& mesh, SubchunkTerrainView terrai
 */
 
 void SubChunkMeshGenerator::AddTextureCoords(Mesh& mesh, const glm::vec2& pos, const glm::vec2& size) {
-	mesh.UV.emplace_back(pos.x, pos.y);
-	mesh.UV.emplace_back(pos.x + size.x, pos.y);
+	mesh.UV.emplace_back(pos.x,          pos.y         );
+	mesh.UV.emplace_back(pos.x + size.x, pos.y         );
 	mesh.UV.emplace_back(pos.x + size.x, pos.y + size.y);
 
-	mesh.UV.emplace_back(pos.x, pos.y);
+	mesh.UV.emplace_back(pos.x,          pos.y         );
 	mesh.UV.emplace_back(pos.x + size.x, pos.y + size.y);
-	mesh.UV.emplace_back(pos.x, pos.y + size.y);
+	mesh.UV.emplace_back(pos.x,          pos.y + size.y);
 }
 
 void SubChunkMeshGenerator::AddFaceYZLeft(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z);
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x, pos.y,        pos.z       );
+	mesh.Positions.emplace_back(pos.x, pos.y,        pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z + 1.0f);
 
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z);
+	mesh.Positions.emplace_back(pos.x, pos.y,        pos.z       );
 	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z);
+	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z       );
 
 	for (int i = 0; i < 6; ++i)
 		mesh.Normals.emplace_back(-1, 0, 0);
@@ -92,12 +92,12 @@ void SubChunkMeshGenerator::AddFaceYZLeft(Mesh& mesh, const glm::vec3& pos, cons
 }
 
 void SubChunkMeshGenerator::AddFaceYZRight(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z);
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z       );
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z       );
 
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z       );
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z + 1.0f);
 
 	for (int i = 0; i < 6; ++i)
@@ -108,13 +108,13 @@ void SubChunkMeshGenerator::AddFaceYZRight(Mesh& mesh, const glm::vec3& pos, con
 }
 
 void SubChunkMeshGenerator::AddFaceXZLower(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z);
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x,        pos.y, pos.z       );
+	mesh.Positions.emplace_back(pos.x,        pos.y, pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z + 1.0f);
 
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z);
+	mesh.Positions.emplace_back(pos.x,        pos.y, pos.z       );
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z       );
 
 	for (int i = 0; i < 6; ++i)
 		mesh.Normals.emplace_back(0, -1, 0);
@@ -124,13 +124,13 @@ void SubChunkMeshGenerator::AddFaceXZLower(Mesh& mesh, const glm::vec3& pos, con
 }
 
 void SubChunkMeshGenerator::AddFaceXZUpper(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
-	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x,        pos.y + 1.0f, pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z       );
 
-	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z);
-	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z);
+	mesh.Positions.emplace_back(pos.x,        pos.y + 1.0f, pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z       );
+	mesh.Positions.emplace_back(pos.x,        pos.y + 1.0f, pos.z       );
 
 	for (int i = 0; i < 6; ++i)
 		mesh.Normals.emplace_back(0, 1, 0);
@@ -140,13 +140,13 @@ void SubChunkMeshGenerator::AddFaceXZUpper(Mesh& mesh, const glm::vec3& pos, con
 }
 
 void SubChunkMeshGenerator::AddFaceXYFront(Mesh& mesh, const glm::vec3& pos, const BlockData& blockData) {
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y, pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x,        pos.y,        pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y,        pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z + 1.0f);
 
-	mesh.Positions.emplace_back(pos.x, pos.y, pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x,        pos.y,        pos.z + 1.0f);
 	mesh.Positions.emplace_back(pos.x + 1.0f, pos.y + 1.0f, pos.z + 1.0f);
-	mesh.Positions.emplace_back(pos.x, pos.y + 1.0f, pos.z + 1.0f);
+	mesh.Positions.emplace_back(pos.x,        pos.y + 1.0f, pos.z + 1.0f);
 
 	for (int i = 0; i < 6; ++i)
 		mesh.Normals.emplace_back(0, 0, 1);
