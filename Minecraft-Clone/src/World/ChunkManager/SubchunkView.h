@@ -17,38 +17,33 @@ public:
 	{
 	}
 
-	inline const std::vector<ChunkBlock>& GetBlocks() const noexcept {
-		return *m_Blocks; 
-	}
-
 	inline ChunkBlock GetBlock(uint32_t x, uint32_t y, uint32_t z) const {
 		if (m_Blocks == nullptr) return ChunkBlock();
-
+		
 		QK_ASSERT(x < SubChunkSizeX && y < SubChunkSizeY && z < SubChunkSizeZ, "Block index out of bound!");
 		return (*m_Blocks)[static_cast<size_t>((z * SubChunkSizeX * SubChunkSizeY) + (y * SubChunkSizeX) + x)];
 	}
-
+	
 	inline BlockId GetBlockType(int x, int y, int z) const {
 		if (x < 0 || y < 0 || z < 0)
-			return BlockId::None;
+		return BlockId::None;
 		if (x >= SubChunkSizeX || y >= SubChunkSizeY || z >= SubChunkSizeZ)
-			return BlockId::None;
-
+		return BlockId::None;
+		
 		return GetBlock(x, y, z).Id;
 	}
-
+	
 	inline bool IsSolidBlock(int x, int y, int z) const {
 		if (x < 0 || y < 0 || z < 0)
-			return false;
+		return false;
 		if (x >= SubChunkSizeX || y >= SubChunkSizeY || z >= SubChunkSizeZ)
-			return false;
-
+		return false;
+		
 		return GetBlock(x, y, z).Id != BlockId::Air;
 	}
-
-	const bool IsValid() const noexcept {
-		return m_Blocks != nullptr;
-	}
+	
+	inline const bool                     IsValid()   const noexcept { return m_Blocks != nullptr; }
+	inline const std::vector<ChunkBlock>& GetBlocks() const noexcept { return *m_Blocks;           }
 
 private:
 	const std::vector<ChunkBlock>* m_Blocks;
@@ -62,13 +57,8 @@ public:
 	{
 	}
 
-	const ChunkMesh& GetMesh() const noexcept {
-		return *m_Mesh;
-	}
-
-	const bool IsValid() const noexcept {
-		return m_Mesh != nullptr;
-	}
+	const ChunkMesh& GetMesh() const noexcept { return *m_Mesh;           }
+	const bool       IsValid() const noexcept { return m_Mesh != nullptr; }
 
 private:
 	const ChunkMesh* m_Mesh;
@@ -87,7 +77,7 @@ class SubchunkTerrainViewEx {
 	};
 
 public:
-	SubchunkTerrainViewEx(
+    SubchunkTerrainViewEx(
 		SubchunkTerrainView current,
 		SubchunkTerrainView positiveXNeighbourTerrain,
 		SubchunkTerrainView negativeXNeighbourTerrain,

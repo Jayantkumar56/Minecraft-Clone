@@ -10,4 +10,4 @@ constexpr int32_t SubChunkSizeZ = 16;
 constexpr int32_t SubChunkBlocksCount = SubChunkSizeX * SubChunkSizeY * SubChunkSizeZ;
 
 
-constexpr int32_t SubChunkCountInChunk = 2;
+constexpr int32_t SubChunkCountInChunk = 1;

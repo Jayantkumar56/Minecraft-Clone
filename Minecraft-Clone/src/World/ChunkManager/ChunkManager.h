@@ -23,17 +23,15 @@ namespace std {
 
 }
 
-class World;
-
 // distance in number of chunks
-constexpr uint32_t RenderDistance = 2;
+constexpr uint32_t RenderDistance = 4;
 
 class ChunkManager {
 public:
-	ChunkManager(World* world) : 
-			m_World                        ( world                                    ),
+	ChunkManager() :
 			m_TerrainGeneratorThreadPool   ( std::thread::hardware_concurrency() >> 1 ),
-			m_ChunkMeshGeneratorThreadPool ( std::thread::hardware_concurrency() >> 1 )
+			m_ChunkMeshGeneratorThreadPool ( std::thread::hardware_concurrency() >> 1 ),
+			m_PlayerPos                    ( 0                                        )
 	{
 	}
 
@@ -41,7 +39,7 @@ public:
 
 	void RenderChunks(const ::PerspectiveCamera& camera, TextureManager& textureManager);
 
-	void OnUpdate();
+	void OnUpdate(const Player& player);
 
 private:
 	// must be called under a std::unique_lock on m_ChunksMutex,
@@ -52,27 +50,39 @@ private:
 	// as taking terrain ownership token for the given chunk
 	void SubmitChunkForTerrainGeneraion(glm::i16vec2 chunkPos);
 
+	// must be called under a std::shared_lock on m_ChunksMutex
 	bool NeighboursTerrainAvailable(glm::i16vec2 chunkPos) const;
 
-	inline SubchunkTerrainView GetSubchunkTerrainView(glm::i16vec2 chunkPos, int subchunkIndex) const noexcept {
-		auto itr =  m_Chunks.find(chunkPos);
+    void GetChunksToGenerate(glm::i16vec2 prevPlayerChunkPos, glm::i16vec2 currPlayerChunkPos,
+                             std::unordered_set<glm::i16vec2>& chunksToGenerate, std::unordered_set<glm::i16vec2>& chunksToUpdate);
 
-		if (itr == m_Chunks.end() || subchunkIndex < 0 || SubChunkCountInChunk <= subchunkIndex)
-			return SubchunkTerrainView(nullptr);
-		
-		return itr->second.GetSubchunkTerrainView(subchunkIndex);
-	}
+    void GetChunksToDelete(glm::i16vec2 prevPlayerChunkPos, glm::i16vec2 currPlayerChunkPos, 
+                           std::unordered_set<glm::i16vec2>& chunksToDelete, std::unordered_set<glm::i16vec2>& chunksToUpdate);
+
+    void UpdateChunksAroundPlayer(glm::i16vec2 prevPlayerChunkPos, glm::i16vec2 currPlayerChunkPos);
+
+	// returns an empty view if chunk do not exist or it don't have the ownership
+    SubchunkTerrainView GetSubchunkTerrainView(glm::i16vec2 chunkPos, int subchunkIndex) const noexcept;
 
 private:
-	World* m_World;
-
-	std::unordered_map<glm::i16vec2, OwnedChunk> m_Chunks;
+	std::unordered_map<glm::i16vec2, std::unique_ptr<OwnedChunk>> m_Chunks;
 	std::shared_mutex m_ChunksMutex;
 
-	// chunks waiting for their neighbours
-	std::vector<glm::i16vec2> m_MeshGenerationQueue;
+	// chunks waiting for their neighbours for mesh generation
+	std::unordered_set<glm::i16vec2> m_MeshGenerationQueue;
 	std::mutex m_MeshGenerationQueueMutex;
+
+    // chunks waiting for terrain generation
+    std::unordered_set<glm::i16vec2> m_TerrainGenerationQueue;
+    std::mutex m_TerrainGenerationQueueMutex;
+
+	// chunks waiting to be deleted
+	std::unordered_set<glm::i16vec2> m_ChunkDeletionQueue;
+	std::mutex m_ChunkDeletionQueueMutex;
 
 	ThreadPool m_TerrainGeneratorThreadPool;
 	ThreadPool m_ChunkMeshGeneratorThreadPool;
+
+	// stores player chunkPos
+	glm::i16vec2 m_PlayerPos;
 };

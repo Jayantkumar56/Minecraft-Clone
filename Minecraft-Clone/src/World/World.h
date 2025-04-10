@@ -13,7 +13,7 @@ class GamePanel;
 class World {
 	friend class GamePanel;
 public:
-	World() : m_ChunkManager(this) {
+	World() : m_ChunkManager() {
 		m_TextureManager.LoadBlockSprites(m_BlockDataBase);
 
 		//m_Chunks.emplace_back();
@@ -22,7 +22,7 @@ public:
 
 	void OnUpdate() { 
 		m_Player.OnUpdate();
-		m_ChunkManager.OnUpdate();
+		m_ChunkManager.OnUpdate(m_Player);
 	}
 
 	bool OnEvent(Quirk::Event& event) {

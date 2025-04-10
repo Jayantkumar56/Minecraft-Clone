@@ -37,7 +37,7 @@ protected:
 };
 
 template<typename T>
-class TerrainOwnershipToken : private OwnershipTokenBase<T> {
+class TerrainOwnershipToken : public OwnershipTokenBase<T> {
 public:
 	TerrainOwnershipToken(T* dataPtr) noexcept :
 			OwnershipTokenBase<T>(dataPtr)
@@ -68,7 +68,7 @@ public:
 };
 
 template<typename T>
-class MeshOwnershipToken : private OwnershipTokenBase<T> {
+class MeshOwnershipToken : public OwnershipTokenBase<T> {
 public:
 	MeshOwnershipToken(T* dataPtr) noexcept :
 			OwnershipTokenBase<T>(dataPtr)

@@ -5,6 +5,11 @@
 
 void SubChunkMeshGenerator::Generate() {
 	Mesh& solidMesh   = m_Mesh.GetMesh();
+    solidMesh.Positions.clear();
+    solidMesh.Indices.clear();
+    solidMesh.Normals.clear();
+    solidMesh.UV.clear();
+
 	auto  subchunkPos = m_Pos;
 
 	for (int j = 0; j < SubChunkSizeY; ++j) {

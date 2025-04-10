@@ -12,6 +12,11 @@ void GamePanel::SetImguiProperties() {
 	ImGui::SameLine();
 	ImGui::DragFloat3("##Position", glm::value_ptr(pos));
 
+    ImGui::Dummy({ 0.0f, 10.0f });
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::Text("Per frame %.3f ms/frame", 1000.0f / io.Framerate);
+    ImGui::Text("FPS :- %.1f", io.Framerate);
+
 	ImGui::End();
 
 	ImGuiWindowClass window_class;
